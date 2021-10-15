@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>在线学习论坛后台管理系统</title>
+    <link rel="stylesheet" th:href="@{/static/layui/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/fontawesome/css/fontawesome.min.css}" media="all"/>
+    <script th:src="@{/static/common/jquery.min.js}"></script>
+    <script th:src="@{/static/layui/layui.js}"></script>
+    <script th:src="@{/static/js/echarts.min.js}"></script>
+    <style type="text/css">
+        .highcharts-credits {
+            display: none;
+        }
+
+        .layui-table-view {
+            width: 100% !important;
+        }
+
+        .layui-table-main {
+            height: 100% !important;
+        }
+
+        .layui-form {
+            height: 100% !important;
+        }
+    </style>
+</head>
+<!--<div id="categories">-->
+
+<!--    <form class="layui-form" action="">-->
+
+<!--        <div class="layui-form-item">-->
+<!--            <div class="layui-input-block">-->
+<!--                <input type="radio" name="category" value="1" title="开发语言">-->
+<!--                <input type="radio" name="category" value="2" title="平台框架">-->
+<!--                <input type="radio" name="category" value="3" title="服务器">-->
+<!--                <input type="radio" name="category" value="4" title="数据库">-->
+<!--                <input type="radio" name="category" value="5" title="开发工具">-->
+<!--                <input type="radio" name="category" value="6" title="其他">-->
+<!--            </div>-->
+<!--            <div class="layui-form-item">-->
+<!--                <div class="layui-input-block">-->
+<!--                    <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--    </form>-->
+<!--</div>-->
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-body" style="left: 0;top:0">
+        <!--        <div class="demoTable">-->
+        <!--            搜索用户：-->
+        <!--            <div class="layui-inline">-->
+        <!--                <input class="layui-input" name="id" id="demoReload" autocomplete="off" placeholder="用户名 / 邮箱">-->
+        <!--            </div>-->
+        <!--            <button class="layui-btn" data-type="reload">搜索</button>-->
+        <!--        </div>-->
+        <div style="width: 100%">
+            <table class="layui-table"
+                   lay-data="{width: 892, height:330, url:'/admin/tags', page:true, limit: 10,limits: [10, 25, 30, 35, 40],  loading: true,id:'idTest',defaultToolbar: ['filter', 'print', 'exports']}"
+                   lay-filter="users-info">
+                <thead>
+                <tr>
+                    <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+                    <th lay-data="{field:'id', width:60, sort: true, fixed: true}">ID</th>
+                    <th lay-data="{field:'name',  width:150, align: 'center'}">标签名</th>
+                    <th lay-data="{field:'categoryName',  width:180, align: 'center'}">分类</th>
+                    <th lay-data="{field:'isSystemTag',  width:100, align: 'center'
+                        ,templet: function(d){
+                            if(d.isSystemTag) return'是'
+                            else return '否'
+                        } }">系统内置
+                    </th>
+                    <th lay-data="{fixed: 'right', align: 'center', width:200, align:'center', toolbar: '#barDemo'}">
+                        系统内置操作
+                    </th>
+<!--                    <th lay-data="{fixed: 'right', align: 'center', width:100, align:'center', toolbar: '#caSet'}">-->
+<!--                        分类设置-->
+<!--                    </th>-->
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="setIs">设置</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="setNo">取消</a>
+</script>
+<!--<script type="text/html" id="caSet">-->
+<!--    <a class="layui-btn layui-btn-xs" lay-event="setTagCa">修改分类</a>-->
+<!--</script>-->
+<script>
+    layui.use(['table', 'form'], function () {
+        let table = layui.table;
+        var form = layui.form;
+        let hangId = 0;
+        //监听表格复选框选择
+        table.on('checkbox(users-info)', function (obj) {
+            console.log(obj)
+        });
+
+        //监听工具条
+        table.on('tool(users-info)', function (obj) {
+            let data = obj.data;
+            if (obj.event === 'detail') {
+                layer.msg('查看：' + data.id + ' 的信息');
+            } else if (obj.event === 'setIs') {
+                // layer.alert('编辑行：<br>' + JSON.stringify(data));
+                //iframe层
+                setTag(data.id, true)
+            } else if (obj.event === 'setNo') {
+                // layer.alert('编辑行：<br>' + JSON.stringify(data));
+                //iframe层
+                setTag(data.id, false)
+            } else if (obj.event === 'setTagCa') {
+                // layer.alert('编辑行：<br>' + JSON.stringify(data));
+                //iframe层
+                // layer.open({
+                //     title: '修改分类',
+                //     type: 1,
+                //     content: '',
+                //     area: ['500px']
+                // });
+                hangId = data.id;
+                layer.open({
+                    type: 1,//类型
+                    area: ['400px', '300px'],//定义宽和高
+                    title: '查看详细信息',//题目
+                    shadeClose: false,//点击遮罩层关闭
+                    content: $('#categories')//打开的内容
+                });
+            }
+        });
+
+        function setTag(id, is) {
+            $.ajax({
+                type: "post",
+                url: "/admin/setSystemTag",
+                data: {
+                    id: id,
+                    is: is
+                },
+                success: function (res) {
+                    if (res.status === 200) {
+                        //成功
+                        layer.alert("设置成功!", {icon: 6, time: 2000});
+                        //执行重载
+                        table.reload('idTest', {
+                            page: {
+                                curr: 1
+                            },
+                            url: '/admin/tags'
+                        }, 'data');
+                    } else {
+                        layer.alert("设置失败!", {icon: 5, time: 2000});
+                    }
+                },
+                error: function () {
+                    layer.alert("设置失败，请稍后再试", {icon: 5, time: 2000});
+                }
+            });
+        }
+
+        let $ = layui.$, active = {
+            getCheckData: function () { //获取选中数据
+                let checkStatus = table.checkStatus('idTest')
+                    , data = checkStatus.data;
+                layer.alert(JSON.stringify(data));
+            }
+            , getCheckLength: function () { //获取选中数目
+                let checkStatus = table.checkStatus('idTest')
+                    , data = checkStatus.data;
+                layer.msg('选中了：' + data.length + ' 个');
+            }
+            , isAll: function () { //验证是否全选
+                let checkStatus = table.checkStatus('idTest');
+                layer.msg(checkStatus.isAll ? '全选' : '未全选')
+            }
+
+            , reload: function () {
+                let demoReload = $('#demoReload');
+
+                //执行重载
+                table.reload('idTest', {
+                    page: {
+                        curr: 1
+                    }
+                    , where: {
+                        key: {
+                            username: demoReload.val()
+                        }
+                    }
+                }, 'data');
+            }
+        };
+
+
+        // //监听提交
+        // form.on('submit(formDemo)', function (data) {
+        //     console.log()
+        //     if (data.field.category === undefined) {
+        //         layer.msg('请重新选择');
+        //         return false;
+        //     } else {
+        //         let caId = data.field.category;
+        //         let id = hangId;
+        //         $.ajax({
+        //             type: "post",
+        //             url: "/admin/setCa",
+        //             data: {
+        //                 id: id,
+        //                 ca: caId
+        //             },
+        //             async: false,
+        //             success: function (res) {
+        //                 if (res.status === 200) {
+        //                     layer.alert("设置成功!", {icon: 6, time: 2000});
+        //                 }else{
+        //                     layer.alert('设置失败', {icon: 5, time: 2000});
+        //                 }
+        //             }
+        //         });
+        //     }
+        //
+        // });
+        // $('.demoTable .layui-btn').on('click', function () {
+        //     let type = $(this).data('type');
+        //     active[type] ? active[type].call(this) : '';
+        // });
+
+    });
+
+</script>
+</body>
+</html>

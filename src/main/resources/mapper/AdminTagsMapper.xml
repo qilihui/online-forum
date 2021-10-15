@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qilihui.forum.admin.mapper.AdminTagsMapper">
+  <resultMap id="BaseResultMap" type="com.qilihui.forum.pojo.Tags">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="tags_name" jdbcType="VARCHAR" property="tagsName" />
+    <result column="category_id" jdbcType="INTEGER" property="categoryId" />
+    <result column="is_origin_tag" jdbcType="INTEGER" property="isOriginTag" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, tags_name, category_id, is_origin_tag
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from tb_tags
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="queryAll" resultType="com.qilihui.forum.pojo.Tags">
+    select
+    <include refid="Base_Column_List" />
+    from tb_tags
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from tb_tags
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.qilihui.forum.pojo.Tags" useGeneratedKeys="true">
+    insert into tb_tags (tags_name, category_id, is_origin_tag
+      )
+    values (#{tagsName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, #{isOriginTag,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.qilihui.forum.pojo.Tags" useGeneratedKeys="true">
+    insert into tb_tags
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="tagsName != null">
+        tags_name,
+      </if>
+      <if test="categoryId != null">
+        category_id,
+      </if>
+      <if test="isOriginTag != null">
+        is_origin_tag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="tagsName != null">
+        #{tagsName,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryId != null">
+        #{categoryId,jdbcType=INTEGER},
+      </if>
+      <if test="isOriginTag != null">
+        #{isOriginTag,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qilihui.forum.pojo.Tags">
+    update tb_tags
+    <set>
+      <if test="tagsName != null">
+        tags_name = #{tagsName,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryId != null">
+        category_id = #{categoryId,jdbcType=INTEGER},
+      </if>
+      <if test="isOriginTag != null">
+        is_origin_tag = #{isOriginTag,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qilihui.forum.pojo.Tags">
+    update tb_tags
+    set tags_name = #{tagsName,jdbcType=VARCHAR},
+      category_id = #{categoryId,jdbcType=INTEGER},
+      is_origin_tag = #{isOriginTag,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateOriginSystemByPrimaryKey" parameterType="com.qilihui.forum.pojo.Tags">
+    update tb_tags
+    <set>
+      <if test="isOriginTag != null">
+        is_origin_tag = #{isOriginTag,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

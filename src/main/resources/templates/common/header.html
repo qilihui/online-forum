@@ -1,0 +1,43 @@
+<div class="layui-header layui-layout-admin">
+    <!--<div class="layui-logo">在线学习论坛</div>-->
+    <div class="layui-logo">
+        <div class="layui-logo">
+            在线学习论坛
+        </div>
+    </div>
+    <!-- 头部区域（可配合layui已有的水平导航） -->
+    <ul class="layui-nav layui-layout-left">
+        <li class="layui-nav-item" id="index">
+            <a href="/">首页</a>
+        </li>
+        <li class="layui-nav-item" id="title-java">
+            <a href="/java">学习路线</a>
+        </li>
+        <li class="layui-nav-item searchQues" id="title-project">
+            <a href="/project">项目简介</a>
+        </li>
+<!--        <li class="layui-nav-item">-->
+<!--            <a href="javascript:;">关注作者</a>-->
+<!--            <dl class="layui-nav-child">-->
+<!--                <dd><a href="https://github.com/qilihui">Github</a></dd>-->
+<!--            </dl>-->
+<!--        </li>-->
+        <li class="layui-nav-item searchQues" id="search">
+            <div class="search d1 searchQues">
+                <input class="searchQues" id="keywords" type="text" placeholder="搜索..."/>
+                <button class="searchQues" id="searchBtn" onclick="search();"></button>
+            </div>
+        </li>
+    </ul>
+    <ul class="layui-nav layui-layout-right" id="userinfo">
+        <li class="layui-nav-item layui-login"><a href="/login">登录</a></li>
+        <li class="layui-nav-item layui-register"><a href="/register">注册</a></li>
+    </ul>
+</div>
+<div id="breadcrumb"
+     style="display: flex;justify-content: space-between;padding:0 20px;height: 40px;background: #F0F2F5;line-height: 40px;border-bottom:1px solid #D8D8D8;">
+    <span class="layui-breadcrumb" lay-separator=">">
+        <a href="/">首页</a>
+<!--        <a><cite>当前位置</cite></a>-->
+    </span>
+</div>

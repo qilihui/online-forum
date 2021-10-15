@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qilihui.forum.mapper.IndexImageDao">
+  <resultMap id="BaseResultMap" type="com.qilihui.forum.pojo.IndexImage">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, url
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from tb_index_image
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultType="com.qilihui.forum.pojo.IndexImage">
+    select
+    <include refid="Base_Column_List" />
+    from tb_index_image
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from tb_index_image
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.qilihui.forum.pojo.IndexImage" useGeneratedKeys="true">
+    insert into tb_index_image (url)
+    values (#{url,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.qilihui.forum.pojo.IndexImage" useGeneratedKeys="true">
+    insert into tb_index_image
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="url != null">
+        url,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qilihui.forum.pojo.IndexImage">
+    update tb_index_image
+    <set>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qilihui.forum.pojo.IndexImage">
+    update tb_index_image
+    set url = #{url,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

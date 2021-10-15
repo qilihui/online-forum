@@ -1,0 +1,42 @@
+version: '3'
+services:
+  forum-mysql:
+    container_name: forum-mysql
+    image: mysql:5.7.33
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=this_is_mysql_password
+      - MYSQL_DATABASE=forum
+      - MYSQL_USER=forum
+      - MYSQL_PASSWORD=forum
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+
+  forum-redis:
+    container_name: forum-redis
+    image: redis:6.0
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data
+
+  forum-server:
+    container_name: forum-server
+    #    build: .
+    image: online-forum:0.0.1
+    depends_on:
+      - forum-mysql
+      - forum-redis
+    working_dir: /work
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_DATABASE=forum
+      - MYSQL_USER=forum
+      - MYSQL_PASSWORD=forum
+    ports:
+      - 8888:8888
+    entrypoint: [ "java","-Dspring.profiles.active=local","-jar","/work/app.jar" ]

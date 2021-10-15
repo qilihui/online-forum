@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <link href="/static/assets/libs/layui/css/layui.css" rel="stylesheet"/>
+<!--    <link href="/static/assets/module/admin.css?v=318" rel="stylesheet">-->
+    <link href="/static/assets/module/notice/notice.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/common/custom.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/css/userinfo.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/fontawesome/css/fontawesome.min.css}" media="all"/>
+    <link href="/static/assets/images/favicon.ico" rel="icon">
+    <script th:src="@{/static/common/jquery.min.js}"></script>
+    <script src="/static/assets/libs/layui/layui.js" type="text/javascript"></script>
+    <script src="/static/assets/module/Cropper/Cropper.js" type="text/javascript"></script>
+    <script src="/static/assets/module/notice/notice.js" type="text/javascript"></script>
+    <script src="/static/assets/module/tagsInput/tagsInput.js" type="text/javascript"></script>
+    <script src="/static/assets/module/cascader/cascader.js" type="text/javascript"></script>
+    <script src="/static/assets/module/cascader/citys-data.js" type="text/javascript"></script>
+    <script src="/static/assets/module/formX.js" type="text/javascript"></script>
+    <script th:src="@{/static/js/search.js}"></script>
+    <script th:src="@{/static/js/forum.js}"></script>
+</head>
+<body>
+<div class="layui-layout">
+    <header th:replace="common/header"></header>
+    <!-- 正文开始 -->
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <!-- 左 -->
+            <div class="layui-col-sm12 layui-col-md3 layui-col-md-offset1">
+                <div class="layui-card">
+                    <div class="layui-card-body" style="padding: 25px;">
+                        <div class="text-center layui-text">
+                            <div class="user-info-head" id="userInfoHead">
+                                <img alt="头像" id="useravatar" th:src="${info.avatar}"/>
+                            </div>
+                            <h2 id="info-username" style="padding-top: 20px;" th:text="${info.username}">暂无</h2>
+                            <p id="info-description" style="padding-top: 8px;" th:text="${info.comment}">暂无相关信息</p>
+                        </div>
+                        <div class="layui-text" style="padding-top: 30px;">
+                            <div class="user-info-list-item">
+                                <i class="layui-icon layui-icon-username"></i>
+                                <p id="info-jobTitle" th:text="${info.jobTitle}">暂无相关信息</p>
+                            </div>
+                            <div class="user-info-list-item">
+                                <i class="layui-icon layui-icon-release"></i>
+                                <p id="info-company" th:text="${info.company}">暂无相关信息</p>
+                            </div>
+                            <div class="user-info-list-item">
+                                <i class="layui-icon layui-icon-location"></i>
+                                <p id="info-address" th:text="${info.area}">暂无相关信息</p>
+                            </div>
+                        </div>
+                        <div class="layui-line-dash"></div>
+                        <h3>标签</h3>
+                        <div class="layui-badge-list" id="user-tags" style="padding-top: 6px;"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 右 -->
+            <div class="layui-col-sm12 layui-col-md8" style="padding-right: 200px;">
+                <div class="layui-card">
+                    <!-- 选项卡开始 -->
+                    <div class="layui-tab layui-tab-brief" lay-filter="userInfoTab">
+                        <ul class="layui-tab-title">
+                            <li class="layui-this">基本信息</li>
+<!--                            <li>账号绑定</li>-->
+                        </ul>
+                        <div class="layui-tab-content">
+                            <!-- 基本信息Ta -->
+                            <div class="layui-tab-item layui-show">
+                                <form class="layui-form layui-form-pane" id="userInfoForm" lay-filter="userinfo"
+                                      style="padding: 25px 10px 0 0;">
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">用户名</label>
+                                        <div class="layui-input-block">
+                                            <input class="layui-input" id="loginName" name="loginName"
+                                                   readonly="readonly"
+                                                   style="width: 200px;background-color: #e6e6e67a;"/>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label layui-form-required">昵称</label>
+                                        <div class="layui-input-block">
+                                            <input class="layui-input" id="username" lay-verify="required"
+                                                   name="username" required style="width: 200px;"/>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">性别</label>
+                                        <div class="layui-input-block">
+                                            <input checked name="sex" title="男" type="radio" value="1">
+                                            <input name="sex" title="女" type="radio" value="2">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">生日</label>
+                                        <div class="layui-input-block">
+                                            <input class="layui-input" id="birthday" name="birthday"
+                                                   placeholder="1970-01-01"
+                                                   style="width: 200px;" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item" id="emailCheck">
+                                        <label class="layui-form-label">邮箱</label>
+                                        <div class="layui-input-inline">
+                                            <input class="layui-input" id="email" name="email" placeholder="请输入您的邮箱"
+                                                   style="width: 195px;" type="text">
+                                        </div>
+                                        <div class="layui-input-inline" id="check-email" style="display: none">
+                                            <button class="layui-btn email-check-btn" id="btnSend" type="button">验证邮箱
+                                            </button>
+                                        </div>
+                                        <div class="verified" id="verified-email" style="color: #969696;display: none">
+                                            <i class="layui-icon layui-icon-ok"
+                                               style="line-height: 37px;margin-left: 10px;"></i>&nbsp;&nbsp;已验证
+                                            <span id="unCheckEmail"
+                                                  style="margin-left: 10px;color: #969696;cursor: pointer;display: none">解除绑定</span>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">现居地址</label>
+                                        <!--                                        <div class="layui-input-inline" style="width: 300px;">-->
+                                        <!--                                            <input id="area" name="area" placeholder="请选择" class="layui-hide"/>-->
+                                        <!--                                        </div>-->
+
+                                        <div class="layui-input-inline">
+                                            <select class="province" id="province" lay-filter="province"
+                                                    name="province">
+                                                <option value="">请选择省</option>
+                                            </select>
+                                        </div>
+                                        <div class="layui-input-inline">
+                                            <select class="city" id="city" lay-filter="city" name="city">
+                                                <option value="">请选择市</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">毕业学校</label>
+                                        <div class="layui-input-inline">
+                                            <input class="layui-input" id="university" name="university"
+                                                   placeholder="请输入学校全称"
+                                                   type="text">
+                                        </div>
+                                        <label class="layui-form-label">所学专业</label>
+                                        <div class="layui-input-inline">
+                                            <input class="layui-input" id="majority" name="majority"
+                                                   placeholder="请输入专业全称"
+                                                   type="text">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">就职公司</label>
+                                        <div class="layui-input-inline">
+                                            <input class="layui-input" id="company" name="company" placeholder="请输入公司信息"
+                                                   type="text">
+                                        </div>
+                                        <label class="layui-form-label">工作职位</label>
+                                        <div class="layui-inline">
+                                            <div class="layui-input-inline">
+                                                <select lay-filter="jobTitle" lay-search="" name="jobTitle">
+                                                    <option value="">选择您的职位</option>
+                                                    <option value="0">C++开发工程师</option>
+                                                    <option value="1">Java开发工程师</option>
+                                                    <option value="2">Python开发工程师</option>
+                                                    <option value="3">前端开发工程师</option>
+                                                    <option value="4">后端开发工程师</option>
+                                                    <option value="5">大数据开发工程师</option>
+                                                    <option value="6">算法开发工程师</option>
+                                                    <option value="7">机器学习算法开发工程师</option>
+                                                    <option value="8">计算机视觉开发工程师</option>
+                                                    <option value="9">NLP开发工程师</option>
+                                                    <option value="10">PHP开发工程师</option>
+                                                    <option value="11">C#开发工程师</option>
+                                                    <option value="12">运维开发工程师</option>
+                                                    <option value="13">测试开发工程师</option>
+                                                    <option value="14">其它职位</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label" style="width: 600px;">个人简介</label>
+                                        <div class="layui-input-block">
+                                            <textarea class="layui-textarea" name="desc" placeholder="快来介绍一下自己吧（选填）"
+                                                      style="width: 600px;"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">个性标签</label>
+                                        <div class="layui-input-block" style="width: 500px">
+                                            <input class="layui-hide" id="hobby" name="hobby"
+                                                   th:value="${userinfo.hobby}"/>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <div class="layui-input-block">
+                                            <button class="layui-btn" lay-filter="userInfoSubmit" lay-submit>更新基本信息
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- 绑定设置Tab -->
+<!--                            <div class="layui-tab-item" style="padding-bottom: 20px;">-->
+<!--                                <div class="user-bd-list layui-text">-->
+<!--&lt;!&ndash;                                    <div class="user-bd-list-item">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <div class="user-bd-list-lable">密保手机</div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <div class="user-bd-list-text">已绑定手机：138****8293</div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <a class="user-bd-list-oper">修改</a>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </div>&ndash;&gt;-->
+<!--                                    <div class="user-bd-list-item">-->
+<!--                                        <div class="user-bd-list-lable">邮箱</div>-->
+<!--                                        <div class="user-bd-list-text">已绑定邮箱：easyweb@vip.com</div>-->
+<!--                                        <a class="user-bd-list-oper">修改</a>-->
+<!--                                    </div>-->
+<!--                                    <div class="user-bd-list-item">-->
+<!--                                        <div class="user-bd-list-img">-->
+<!--                                            <i class="layui-icon layui-icon-login-qq"-->
+<!--                                               style="color: #3492ED;font-size: 48px;"></i>-->
+<!--                                        </div>-->
+<!--                                        <div class="user-bd-list-content">-->
+<!--                                            <div class="user-bd-list-lable">绑定QQ</div>-->
+<!--                                            <div class="user-bd-list-text">当前未绑定QQ账号</div>-->
+<!--                                        </div>-->
+<!--                                        <a class="user-bd-list-oper">绑定</a>-->
+<!--                                    </div>-->
+<!--                                    <div class="user-bd-list-item">-->
+<!--                                        <div class="user-bd-list-img">-->
+<!--                                            <i class="layui-icon layui-icon-login-wechat"-->
+<!--                                               style="color: #4DAF29;font-size: 48px;"></i>-->
+<!--                                        </div>-->
+<!--                                        <div class="user-bd-list-content">-->
+<!--                                            <div class="user-bd-list-lable">绑定微信</div>-->
+<!--                                            <div class="user-bd-list-text">当前未绑定绑定微信账号</div>-->
+<!--                                        </div>-->
+<!--                                        <a class="user-bd-list-oper">绑定</a>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                    <!-- //选项卡结束 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:inline="javascript">
+
+    let userInfomation = [[${userinfo}]];
+    let provinceList = [], cityList = [];
+    let loginUserInfo = [[${session.loginUserInfo}]];
+    init(loginUserInfo);
+
+    layui.config({
+        base: '/static/assets/module/'
+    }).use(['layer', 'form', 'element', 'admin', 'laydate', 'notice', 'cascader', 'formX'], function () {
+        let $ = layui.jquery;
+        let layer = layui.layer;
+        let form = layui.form;
+        let element = layui.element;
+        let admin = layui.admin;
+        let laydate = layui.laydate;
+        let notice = layui.notice;
+        let cascader = layui.cascader;
+        let formX = layui.formX;
+
+        //生日选择
+        laydate.render({
+            elem: '#birthday',
+            max: maxDate()
+        });
+
+        //设置个性标签
+        $('#hobby').tagsInput({removeWithBackspace: true});
+
+        // 设置最大可选的日期
+        function maxDate() {
+            let now = new Date();
+            return now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+        }
+
+        cascader.render({
+            elem: '#area',
+            data: citysData,
+            itemHeight: '250px',
+            filterable: true
+        });
+
+
+
+        //面包屑使用
+        let currPoisition = "<span lay-separator=\"\">&gt;</span><a><cite>我的基本资料</cite></a>";
+        $(".layui-breadcrumb a").last().after(currPoisition);
+
+        $("#title-user").addClass("layui-this");
+
+        //回显表单数据
+        form.val('userinfo', {
+            "loginName": userInfomation.loginName
+            , "username": userInfomation.username
+            , "sex": userInfomation.sex
+            , "birthday": userInfomation.birthday
+            , "email": userInfomation.email
+            , "area": userInfomation.area
+            , "desc": userInfomation.comment
+            // , "site": userInfomation.site
+            // , "github": userInfomation.github
+            // , "weibo": userInfomation.weibo
+            , "university": userInfomation.university
+            , "majority": userInfomation.majority
+            , "company": userInfomation.company
+            , "jobTitle": userInfomation.jobTitle
+        });
+
+        let hobby = userInfomation.hobby;
+        let arr = ['layui-badge-green', 'layui-badge-blue', 'layui-badge-red', 'layui-badge-yellow', 'layui-badge-gray'];
+        if (hobby !== null && hobby.length > 0) {
+            if (hobby.indexOf(",") !== -1) {
+                let html = "";
+                $.each(hobby.split(","), function (index, item) {
+                    let i = Math.floor((Math.random() * arr.length));
+                    html += "<span class='layui-badge " + arr[i] + "'>" + item + "</span>";
+                });
+                //渲染
+                $("#user-tags").html(html);
+            } else {
+                $("#user-tags").html("<span class=\"layui-badge layui-bg-gray\">" + hobby + "</span>");
+            }
+        } else {
+            $("#user-tags").html("暂无个性标签哦");
+        }
+
+        //获取邮箱是否验证信息(显示作用)
+        $.ajax({
+            type: "get",
+            url: "/queryEmailStatus?username=" + userInfomation.username,
+            async: false,
+            success: function (res) {
+                if (res.status === 200) {
+                    if (res.data === 0) {
+                        //未激活
+                        $("#check-email").show();
+                        $("#verified-email").hide();
+                        $("#email").attr("disabled", false);
+                        $("#email").css("background-color", "none");
+
+                    } else if (res.data === 1) {
+                        //已激活
+                        $("#verified-email").show();
+                        $("#check-email").hide();
+                        $("#email").attr("disabled", true);
+                        $("#email").css("background-color", "#e6e6e67a");
+                    }
+                }
+            }
+        });
+
+        /* 选择头像 */
+        $('#userInfoHead').click(function () {
+            admin.cropImg({
+                imgSrc: $('#userInfoHead>img').attr('src'),
+                onCrop: function (res) {
+                    //在前端将BASE64格式转换成File类型上传到后端
+                    let form = new FormData();
+                    form.append("bizType", "9");
+                    let blob = dataURLtoFile(res, 'image/jpeg');
+                    let fileOfBlob = new File([blob], new Date() + '.jpg'); // 重命名了
+                    form.append("file", fileOfBlob);
+                    //传到后端
+                    $.ajax({
+                        type: "post",
+                        url: "/newUpload",
+                        processData: false,
+                        contentType: false,
+                        data: form,
+                        success: function (res) {
+                            if (res.status === 200) {
+                                notice.msg('头像上传成功', {icon: 1});
+                            }
+                        },
+                        error: function (res) {
+                            notice.msg('头像上传失败，请稍后再试', {icon: 2});
+                        }
+                    });
+
+                    $('#userInfoHead>img').attr('src', res);
+                    $('#title-user img').attr('src', res);
+                }
+            });
+        });
+
+        function dataURLtoFile(dataURI, type) {
+            let binary = atob(dataURI.split(',')[1]);
+            let array = [];
+            for (let i = 0; i < binary.length; i++) {
+                array.push(binary.charCodeAt(i));
+            }
+            return new Blob([new Uint8Array(array)], {type: type});
+        }
+
+        //监听下拉框改变事件
+        form.on('select(province)', function (data) {
+            //获取省份对应的城市列表
+            let cityArr = cityList[data.value];
+            $("#city option:gt(0)").remove();
+            if (cityArr != null && cityArr.length > 0) {
+                $.each(cityArr, function (i, city) {
+                    let opt = "<option value='" + i + "'>" + city + "</option>";
+                    $("#city").append(opt);
+                });
+                form.render();
+            }
+        });
+
+        //回显所在地
+        if (userInfomation.area != null && userInfomation.area.length > 0) {
+            let area = userInfomation.area;
+            let place = area.split("-");
+            let proIndex = $.inArray(place[0], provinceList);
+            let cList = cityList[proIndex];
+            let cityIndex = $.inArray(place[1], cList);
+            $('select[name=province]').children('option').each(function () {
+                if (parseInt($(this).attr("value")) === proIndex) {
+                    $(this).attr("selected", "selected");
+                    let cityArr = cityList[proIndex];
+                    $("#city option:gt(0)").remove();
+                    if (cityArr != null && cityArr.length > 0) {
+                        $.each(cityArr, function (i, city) {
+                            let opt = "<option value='" + i + "'>" + city + "</option>";
+                            $("#city").append(opt);
+                        });
+                        form.render();
+                    }
+                }
+            });
+            $('select[name=city]').children('option').each(function () {
+                if (parseInt($(this).attr("value")) === cityIndex) {
+                    $(this).attr("selected", "selected");
+                    form.render();
+                }
+            });
+        }
+
+        //回显工作职位
+        if (userInfomation.jobTitle != null && userInfomation.jobTitle.length > 0) {
+            let jobTitle = userInfomation.jobTitle;
+            $('select[name=jobTitle]').children("option").each(function () {
+                if ($(this).html() === jobTitle) {
+                    //选中
+                    $(this).attr("selected", "selected");
+                    form.render();
+                }
+            })
+        }
+
+        if (userInfomation.hobby != null && userInfomation.hobby.length > 0) {
+            $("#hobby").val(userInfomation.hobby);
+        }
+
+        /* 监听表单提交 */
+        form.on('submit(userInfoSubmit)', function (data) {
+            let area, province, city;
+            if (data.field.province != null && data.field.province.length > 0) {
+                province = provinceList[data.field.province];
+                if (data.field.city != null && data.field.city.length > 0) {
+                    city = cityList[data.field.province][data.field.city];
+                } else {
+                    city = "";
+                }
+                area = province + "-" + city;
+            } else {
+                area = "";
+            }
+
+            let jobTitle = "";
+            if (data.field.jobTitle != null && data.field.jobTitle.length > 0) {
+                $('select[name=jobTitle]').children("option").each(function () {
+                    if (parseInt($(this).attr("value")) === parseInt(data.field.jobTitle)) {
+                        jobTitle = $(this).html();
+                    }
+                });
+            }
+
+            let hobby = $("#hobby").val();
+            if (hobby.indexOf(",") !== -1) {
+                let hobbys = hobby.split(",");
+                if (hobbys.length > 6) {
+                    notice.error({
+                        title: '消息通知',
+                        message: '最多不能添加超过6个标签哦',
+                        timeout: 1500
+                    });
+                    return false;
+                }
+
+                for (let i = 0; i < hobbys.length; i++) {
+                    if (hobbys[i].length > 6) {
+                        notice.error({
+                            title: '消息通知',
+                            message: '单个标签长度不能超过6个字符哦',
+                            timeout: 1500
+                        });
+                        return false;
+                    }
+                }
+            } else {
+                if (hobby.length > 6) {
+                    notice.error({
+                        title: '消息通知',
+                        message: '单个标签长度不能超过6个字符哦',
+                        timeout: 1500
+                    });
+                    return false;
+                }
+            }
+
+            $.ajax({
+                type: "put",
+                url: "/updateUserInfo",
+                data: {
+                    loginName: data.field.loginName,
+                    username: data.field.username,
+                    sex: data.field.sex,
+                    birthday: data.field.birthday === null ? "" : data.field.birthday,
+                    email: data.field.email,
+                    area: area,
+                    comment: data.field.desc === null ? "" : data.field.desc,
+                    university: data.field.university === null ? "" : data.field.university,
+                    majority: data.field.majority === null ? "" : data.field.majority,
+                    company: data.field.company === null ? "" : data.field.company,
+                    jobTitle: jobTitle,
+                    hobby: $("#hobby").val()
+                },
+                success: function (res) {
+                    if (res.status === 200) {
+                        notice.success({
+                            title: '消息提示',
+                            message: '更新基本信息成功!',
+                            timeout: 2000,
+                            onClosed: function () {
+                                window.location.reload();
+                            }
+                        });
+                    } else if (res.status === 500) {
+                        notice.error({
+                            title: '消息通知',
+                            message: '更新信息失败，请稍后再试!',
+                            timeout: 2000,
+                        });
+                    } else if (res.status === 400) {
+                        notice.warning({
+                            title: '消息通知',
+                            message: res.msg,
+                            timeout: 2000,
+                        });
+                    }
+                },
+                error: function () {
+                    notice.error({
+                        title: '消息通知',
+                        message: '系统错误，请稍后再试!'
+                    });
+                }
+            });
+            return false;
+        });
+
+        //验证邮箱操作
+        $(".email-check-btn").click(function () {
+            let email = $("#email").val();
+
+            //校验邮箱
+            if ($.trim(email) == null || $.trim(email).length === 0) {
+                layer.msg("邮箱不能为空哦");
+                return false;
+            }
+
+            //验证邮箱
+            let reg = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+            if (!reg.test(email)) {
+                layer.alert("邮箱格式不正确", {icon: 5, time: 2000});
+                return false;
+            }
+
+            //查询是否已经存在这个邮箱
+            $.ajax({
+                type: "get",
+                url: "/getEmailStatus",
+                async: false,
+                data: {email: email},
+                success: function (res) {
+                    if (res.status === 400) {
+                        layer.alert(res.msg, {icon: 5, time: 2000});
+                        return false;
+                    }
+
+                    if (res.status === 500) {
+                        layer.alert("该邮箱已被验证过，请更换邮箱", {icon: 5, time: 2000});
+                        return false;
+                    }
+
+                    if (res.status === 200) {
+                        formX.startTimer('#btnSend', 30, function (time) {
+                            return time + 's 后重新发送';
+                        });
+
+                        //发送邮件验证码
+                        $.get("/email?emailTo=" + email);
+
+                        layer.prompt({title: '输入邮箱收到的验证码', formType: 0}, function (verifyCode, index) {
+                            if (verifyCode == null || verifyCode.length === 0) {
+                                alert("验证码不能为空");
+                                return false;
+                            }
+
+                            $.ajax({
+                                type: "get",
+                                url: "/checkEmail",
+                                async: false,
+                                data: {
+                                    verifyCode: verifyCode,
+                                    username: [[${session.username}]],
+                                    email: email
+                                },
+                                success: function (res) {
+                                    if (res.status === 200) {
+                                        layer.alert("恭喜您验证成功，可使用邮箱登录了哦~", function () {
+                                            layer.close(index);
+                                            //保存数据到数据库
+                                            $("#email").attr("disabled", "true");
+                                            $("#email").css("background-color", "#e6e6e67a");
+                                            window.location.reload();
+                                        });
+                                    } else if (res.status === 500) {
+                                        layer.msg("验证码不正确");
+                                    }
+                                }
+                            })
+                        });
+                    }
+                }
+            });
+        });
+
+    });
+
+
+    //页面加载完成就开始
+    $(document).ready(function () {
+        let username = [[${session.username}]];
+
+        if (($.trim(username).length > 0)) {
+            //查询地名
+            $.getJSON("/static/common/address.json", function (data) {
+                provinceList = [];
+                cityList = [];
+                $.each(data.provinces, function (i, province) {
+                    provinceList[i] = province.name;
+                    let cList = [];
+                    $.each(province.cities, function (j, city) {
+                        cList[j] = city.name;
+                    });
+                    cityList[i] = cList;
+                });
+
+                //首先给省份下拉框赋值
+                $.each(provinceList, function (i, province) {
+                    let opt = "<option value='" + i + "'>" + province + "</option>";
+                    $("#province").append(opt);
+                });
+            });
+        }
+
+        //取消绑定邮箱
+        $("#unCheckEmail").click(function () {
+            layer.confirm('确定取消绑定邮箱？', {
+                btn: ['确定', '取消']
+            }, function () {
+                let email = $("#email").val();
+                //发送邮件验证码
+                $.get("/email?emailTo=" + email);
+                layer.prompt({title: '输入邮箱收到的验证码', formType: 0}, function (verifyCode, index) {
+                    layer.close(index);
+
+                    //验证邮箱
+                    $.ajax({
+                        type: "get",
+                        url: "/checkEmail",
+                        async: false,
+                        data: {
+                            verifyCode: verifyCode,
+                            username: username,
+                            email: email
+                        },
+                        success: function (res) {
+                            if (res.status === 200) {
+                                layer.msg("取消绑定成功!");
+                                //改变数据库状态
+                                $("#email").attr("disabled", "false");
+                                $("#email").css("background-color", "#none");
+                                window.location.reload();
+                            } else if (res.status === 500) {
+                                alert("验证码不正确");
+                            }
+                        }
+                    })
+                });
+            }, function () {
+
+            });
+        });
+    });
+</script>
+</body>
+</html>

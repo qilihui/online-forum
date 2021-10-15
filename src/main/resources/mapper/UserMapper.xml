@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qilihui.forum.mapper.UserMapper">
+    <!-- 修改密码 -->
+    <update id="updatePassword">
+        update tb_user set password = #{newPassword} where username = #{username}
+    </update>
+
+    <update id="updateUsernamePassword">
+        update tb_user set password = #{password}, username = #{username} where uid = #{uid}
+    </update>
+
+    <update id="setDisable">
+        update tb_user set disable = true where uid = #{uid}
+    </update>
+
+    <!--根据用户ID删除用户信息-->
+    <delete id="deleteUserById">
+        delete from tb_user where uid = #{id}
+    </delete>
+
+    <!-- 查询所有用户信息 -->
+    <select id="getAllUsers" resultType="com.qilihui.forum.pojo.User">
+        select * from tb_user
+    </select>
+
+    <!-- 插入一条用户信息，并返回主键信息 -->
+    <insert id="insertUser" parameterType="com.qilihui.forum.pojo.User" useGeneratedKeys="true" keyProperty="uid">
+        insert into tb_user(username,password) values (#{username},#{password})
+    </insert>
+
+    <!-- 根据用户名查询信息 -->
+    <select id="getUserByName" parameterType="string" resultType="com.qilihui.forum.pojo.User">
+        select * from tb_user where username = #{username}
+    </select>
+
+    <!-- 据用户uid查询用户-->
+    <select id="getUserByUserId" parameterType="int" resultType="com.qilihui.forum.pojo.User">
+        select * from tb_user where uid = #{userId}
+    </select>
+</mapper>

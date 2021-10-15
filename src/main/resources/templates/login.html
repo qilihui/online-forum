@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>if (window !== top) top.location.replace(location.href);</script>
+    <meta charset="utf-8"/>
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <link href="/static/assets/images/favicon.ico" rel="icon">
+    <title>用户登录 - 在线学习论坛</title>
+    <link href="/static/assets/libs/layui/css/layui.css" rel="stylesheet"/>
+    <link href="/static/assets/module/admin.css?v=318" rel="stylesheet">
+    <link href="/static/assets/module/notice/notice.css" rel="stylesheet">
+    <link href="/static/css/login.css" rel="stylesheet">
+    <script src="/static/common/jquery.min.js"></script>
+    <script src="/static/assets/libs/layui/layui.js" type="text/javascript"></script>
+    <script src="/static/assets/module/notice/notice.js" type="text/javascript"></script>
+</head>
+<body>
+<div class="login-wrapper layui-anim layui-anim-scale layui-hide">
+    <form class="layui-form" style="opacity: 0.85;">
+        <h2>用户登录</h2>
+        <div class="layui-form-item layui-input-icon-group">
+            <i class="layui-icon layui-icon-username"></i>
+            <input autocomplete="off" class="layui-input" id="username" lay-verType="tips" lay-verify="username"
+                   name="username" placeholder="请输入登录账号 / 邮箱" required/>
+        </div>
+        <div class="layui-form-item layui-input-icon-group">
+            <i class="layui-icon layui-icon-password"></i>
+            <input class="layui-input" id="password" lay-verType="tips" lay-verify="password" name="password"
+                   placeholder="请输入登录密码" required type="password"/>
+        </div>
+        <div class="layui-form-item layui-input-icon-group login-captcha-group">
+            <i class="layui-icon layui-icon-auz"></i>
+            <input autocomplete="off" class="layui-input" id="verifyCode" lay-verType="tips" lay-verify="verifyCode"
+                   name="code" placeholder="请输入验证码" required/>
+            <img alt="验证码图片" class="login-captcha verifyCode" height="40" onclick="changeCode()" src="/getVerifyCode"
+                 width="133"/>
+        </div>
+        <div class="layui-form-item">
+<!--            <input checked lay-skin="primary" name="remember" title="记住密码" type="checkbox">-->
+            <a class="layui-link pull-right" href="/register">注册账号</a>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-fluid" id="login" lay-filter="loginSubmit" lay-submit>登录</button>
+        </div>
+        <div class="layui-form-item login-oauth-group text-center">
+            <a href="/oauth/login/github"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAACBjSFJN AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAflBMVEUAAAAgICAjKDAjKi0k KS4kKi4jKC4gKCgjKS0kKS4kKy0gIDAjKS4lKiolJSokKS0jKC0jKC0kKS0kKCwlJTAgMDAgKDAk KDAkKS4jKC8kKi4jKi0jKC4kKS4lKS4kKi4jKS4kKC4jKS0jJi0kKS8kKi0jKS4lKjAkKS7///8z 1Ae+AAAAKHRSTlMAEGCfz+9fIKCPjxDfMDCvn2C/QDAQIEDvn89PoHBvf6CAUFCvr5AwG/9sVgAA AAFiS0dEKcq3hSQAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQflAgEDIztFxTSIAAABMElE QVQ4y31T0WKCMAwMQoGNzglKFbahbrPm/79wbVJLaZl5acndJWkSALxlm7wQiKLIywxSq2oDesur CM5eMLLXZiGXmJgMgryt4IaxfaYPY2QWl+8LltgV1sl1UH0lQCvNE7uuEyjM154qpQQkOZhb70Iq K1Tktp6abiruCxNyI+OkbUw4kvvUQMsFJxF66YScoUx7T1XiACOdTUoAms3Ih1zBWXoC/JfQEfSE wMk5xWoN/E7H+0hxbsQIn3R2KaF2z+RG4VeMT+ga1LtVPK/itrgL4vXb9FVOxwd6mEaHDzw2+dOT 55fx27w4NCJtHlMpO5t9OAVr2s9Ng9K7adGBeeXAqrdhhQ/c74Bd+3zaRBHkPdgv3o4FIdqha0zQ 8XjUZSYIMSQraKzxP6MK1H8YBEG8i5fEkQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMS0wMi0wMVQw MzozNTo1OSswMDowMN4RH24AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjEtMDItMDFUMDM6MzU6NTkr MDA6MDCvTKfSAAAAAElFTkSuQmCC"></img></a>&emsp;
+            <a href="/oauth/login/gitee"><img src="data:image/png;base64,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 Mzo0ODozMCswMDowMCB+dbUAAAAASUVORK5CYII="></img></a>&emsp;
+<!--            <a href="javascript:;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAACBjSFJN AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAflBMVEUAAAAgICAjKDAjKi0k KS4kKi4jKC4gKCgjKS0kKS4kKy0gIDAjKS4lKiolJSokKS0jKC0jKC0kKS0kKCwlJTAgMDAgKDAk KDAkKS4jKC8kKi4jKi0jKC4kKS4lKS4kKi4jKS4kKC4jKS0jJi0kKS8kKi0jKS4lKjAkKS7///8z 1Ae+AAAAKHRSTlMAEGCfz+9fIKCPjxDfMDCvn2C/QDAQIEDvn89PoHBvf6CAUFCvr5AwG/9sVgAA AAFiS0dEKcq3hSQAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQflAgEDIztFxTSIAAABMElE QVQ4y31T0WKCMAwMQoGNzglKFbahbrPm/79wbVJLaZl5acndJWkSALxlm7wQiKLIywxSq2oDesur CM5eMLLXZiGXmJgMgryt4IaxfaYPY2QWl+8LltgV1sl1UH0lQCvNE7uuEyjM154qpQQkOZhb70Iq K1Tktp6abiruCxNyI+OkbUw4kvvUQMsFJxF66YScoUx7T1XiACOdTUoAms3Ih1zBWXoC/JfQEfSE wMk5xWoN/E7H+0hxbsQIn3R2KaF2z+RG4VeMT+ga1LtVPK/itrgL4vXb9FVOxwd6mEaHDzw2+dOT 55fx27w4NCJtHlMpO5t9OAVr2s9Ng9K7adGBeeXAqrdhhQ/c74Bd+3zaRBHkPdgv3o4FIdqha0zQ 8XjUZSYIMSQraKzxP6MK1H8YBEG8i5fEkQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMS0wMi0wMVQw MzozNTo1OSswMDowMN4RH24AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjEtMDItMDFUMDM6MzU6NTkr MDA6MDCvTKfSAAAAAElFTkSuQmCC"></img></a>-->
+        </div>
+    </form>
+</div>
+<script>
+    layui.config({
+        base: '/static/assets/module/'
+    }).use(['layer', 'form', 'admin', 'notice'], function () {
+        let $ = layui.jquery;
+        let form = layui.form;
+        let notice = layui.notice;
+        $('.login-wrapper').removeClass('layui-hide');
+
+        //登录请求
+        form.on('submit(loginSubmit)', function (obj) {
+            $.ajax({
+                type: "post",
+                url: "/login",
+                data: {username: obj.field.username, password: obj.field.password, verifyCode: obj.field.code},
+                success: function (res) {
+                    if (res.status === 200) {
+                        notice.msg('登录成功', {
+                            icon: 1,
+                            timeout: 1000,
+                            onClosed: function () {
+                                window.location.href = "/";
+                            }
+                        });
+                    } else {
+                        notice.msg(res.msg, {icon: 2, timeout: 1000});
+                        $(".verifyCode").click();
+                    }
+                },
+                error: function () {
+                    notice.msg("登录失败，请稍后再试", {icon: 2, timeout: 1000});
+                }
+            });
+            return false;
+        });
+    });
+
+    //验证码刷新
+    function changeCode() {
+        let src = "/getVerifyCode?" + new Date().getTime();
+        $('.verifyCode').attr("src", src);
+    }
+
+    $(document).keyup(function (event) {
+        if (event.keyCode === 13) {
+            $("#login").trigger("click");
+        }
+    });
+</script>
+</body>
+</html>

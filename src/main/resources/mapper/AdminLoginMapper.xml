@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qilihui.forum.admin.mapper.AdminLoginMapper">
+    <!-- 新增管理员用户登录信息 -->
+    <insert id="insertLoginInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_admin_login_info(ip,info,`time`) values (#{ip},#{info},#{time})
+    </insert>
+
+    <!-- 查询所有登录信息 -->
+    <select id="queryAllLoginInfo" resultType="com.qilihui.forum.admin.pojo.LoginInfo">
+        select ip,info,`time` from tb_admin_login_info order by id desc limit 8
+    </select>
+</mapper>

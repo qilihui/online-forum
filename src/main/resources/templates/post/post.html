@@ -1,0 +1,1024 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>讨论 - 在线学习论坛</title>
+    <link rel="stylesheet" href="/static/assets/libs/layui/css/layui.css"/>
+    <!--    <link rel="stylesheet" href="/static/assets/module/admin.css?v=318">-->
+    <link rel="stylesheet" href="/static/common/custom.css" media="all"/>
+    <link rel="stylesheet" href="/static/css/index.css" media="all"/>
+    <link rel="stylesheet" href="/static/css/post.css" media="all"/>
+    <link rel="stylesheet" href="/static/css/fancybox.min.css" media="all"/>
+    <link rel="stylesheet" href="/static/fontawesome/css/fontawesome.min.css" media="all"/>
+    <link rel="stylesheet" href="/static/share/css/share.min.css" media="all"/>
+    <script src="/static/common/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/assets/libs/layui/layui.js"></script>
+    <script type="text/javascript" src="/static/assets/module/notice/notice.js"></script>
+    <script src="/static/js/search.js"></script>
+    <script src="/static/js/fancybox.min.js"></script>
+    <script src="/static/js/forum.js"></script>
+    <script src="/static/share/js/social-share.min.js"></script>
+    <script type="text/javascript" src="/static/assets/libs/tinymce/tinymce.min.js"></script>
+    <style>
+        .layui-header {
+            background: #393D49;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-layout">
+    <header th:replace="common/header"></header>
+
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <!-- 左侧 -->
+            <div class="layui-col-xs8">
+                <div class="layui-card" style="padding: 5px 20px 20px 20px">
+                    <!-- 标题 -->
+                    <div class="question-title">
+                        <span id="question-title-info" th:text="${question.title}"></span>
+                    </div>
+
+                    <!-- 帖子元数据 -->
+                    <span class="metadata">
+                    <span id="questionDing" th:if="${question.isDing} eq 1" style="color:red;">[置顶]</span>
+                    <span id="questionJing" th:if="${question.isJing} eq 1" style="color:red;">[精品]</span>
+                        发帖用户：<a th:href="@{'/user/'+${question.uid}}"><span th:text="${question.publisher}"></span></a>&nbsp;|&nbsp;
+                        浏览量： <span id="viewCount" th:text="${question.viewCount}"></span>&nbsp;|&nbsp;
+                        评论数： <span th:text="${question.commentCount}"></span>&nbsp;|&nbsp;
+                        收藏数： <span th:text="${question.likeCount}"></span>&nbsp;|&nbsp;
+                        发布于：<span th:text="${question.gmtCreate}"></span>&nbsp;|&nbsp;
+                        最后修改于：<span th:text="${question.gmtModified}"></span>
+                    <span class="userEdit" id="delete">删除</span>
+                    <span class="userEdit" id="edit">编辑</span>
+                </span>
+                    <hr/>
+
+                    <!-- 帖子主体内容 -->
+                    <div class="question-body">
+                        <p th:utext="${question.description}"></p>
+                    </div>
+                    <div class="question-body-index">
+                        <a class="collect-question" href="javascript:;">
+                            <i style="font-size: 15px" class="layui-icon layui-icon-star">&nbsp;收藏</i>
+                        </a>&nbsp;&nbsp;
+                        <a class="report-question" href="javascript:;">
+                            <i style="font-size: 15px" class="layui-icon layui-icon-vercode">&nbsp;举报</i>
+                        </a>
+                    </div>
+                    <hr/>
+
+                    <!-- 此处渲染文章标签 -->
+                    <div id="post-tags"></div>
+
+                    <!-- 评论区 -->
+                    <h2><span th:text="${question.commentCount} + '&nbsp;个评论'"></span></h2>
+                    <hr/>
+
+                    <!-- 评论显示区 -->
+                    <div class="comments" id="comments"></div>
+
+                    <!-- 提交评论区 -->
+                    <div id="commentQuestion">
+                        <div id="login-comment-body" style="display: none">
+                            <div class="comment-body">
+                                <!-- 回复者头像 -->
+                                <li class="comment-publisher" style="list-style: none;">
+                                    <img class="img-rounded" id="comment-publisher-avatar"
+                                         style="border-radius: 50%"
+                                         width="40"
+                                         src="">
+                                    <small style="font-size: 21px;color: #303030;margin-left: 10px;"
+                                           th:text="${session.username}"></small>
+                                </li>
+                                <!-- 回复区 -->
+                                <div>
+                                        <textarea id="comment-description" name="comment" placeholder="快来评论吧"
+                                                  style="display: none;"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item" style="margin-top: 10px">
+                                <div class="layui-input-block">
+                                    <button type="submit" style="float: right;border-radius: 10px"
+                                            class="layui-btn layui-btn-normal"
+                                            id="commentBtn"
+                                            lay-filter="publish">提交评论
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 未登录 -->
+                        <div id="unlogin-comment-body" style="text-align: center;display: none">
+                            评论帖子请先&nbsp;<a href="/login">登录</a>&nbsp;或&nbsp;<a href="/register">注册</a>&nbsp;
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 右侧 -->
+            <div class="layui-col-xs4">
+                <div class="layui-card" style="padding: 5px 20px 20px 10px;">
+                    <!-- 发起人 -->
+                    <div class="publisher">
+                        <div class="publisher-name">
+                            <h3>发帖用户</h3>
+                        </div>
+                        <div class="publisher-body">
+                            <dl>
+                                <dt class="pull-left aw-border-radius-5">
+                                    <img id="publishAvatar" class="" th:src="${question.avatar}" src="" width="50"
+                                         height="50"
+                                         style="border-radius: 50%">
+                                </dt>
+                                <dd class="pull-left">
+                                    <a class="aw-user-name publish-name" th:href="@{'/user/'+${question.uid}}"
+                                       th:text="${question.publisher}"></a>
+                                    <span class="focus-links"><i class="fa fa-plus"
+                                                                 aria-hidden="true"></i>&nbsp;关注</span>
+                                    <span class="job-title" th:utext="${question.jobTitle}"></span>
+                                    <div style="width: 370px">
+<!--                                        <span class="" id="rate"-->
+<!--                                              lay-bgImg="linear-gradient(to right,#8510FF,#D025C2,#FF8B2D,#F64E2C)"-->
+<!--                                              lay-direction="3" lay-tips="用户等级头衔"></span>-->
+                                        <div id="question-userinfo" th:utext="${question.userInfo}"></div>
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <hr style="width: 95%;margin-left: 20px" class="layui-bg-gray">
+                    <!-- 推荐内容 -->
+                    <div>
+                        <div class="publisher-name">
+                            <h3>精品帖子</h3>
+                        </div>
+                        <ol class="recommendQuestions"></ol>
+                    </div>
+                    <hr class="layui-bg-gray" style="width: 95%;margin-left: 20px">
+                    <!-- 相关问题 -->
+                    <div>
+                        <div class="publisher-name">
+                            <h3>相关帖子</h3>
+                        </div>
+                        <ol class="relatedQuestions"></ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:inline="javascript">
+    let layedit, edit;
+    let question = [[${question}]];
+
+    let loginUserInfo = [[${session.loginUserInfo}]];
+    init(loginUserInfo);
+
+    layui.config({
+        base: '/static/assets/module/'
+    }).use(['element', 'carousel', 'layedit', 'jquery', 'form', 'flow', 'admin', 'notice','layer'], function () {
+        let element = layui.element;
+        let form = layui.form;
+        layedit = layui.layedit;
+        let flow = layui.flow;
+        let $ = layui.jquery;
+        let admin = layui.admin;
+        let notice = layui.notice;
+        let layer = layui.layer;
+
+        //配置图片上传
+        layedit.set({
+            uploadImage: {
+                url: '/uploadImage'
+            }
+        });
+
+        //动画旋转
+        admin.util.animateNum('#viewCount');
+
+        //评论区域的富文本编辑器
+        edit = layedit.build('comment-description', {
+            tool: ['left', 'center', 'italic', 'underline', 'del', 'right', '|', 'face', 'image', 'link', 'unlink']
+        });
+
+        //选中导航栏，并且使用面包屑导航
+        $('.layui-header li').click(function () {
+            $(this).addClass('layui-this').siblings().removeClass('layui-this');
+        });
+
+        //面包屑使用
+        let currPoisition = "<span lay-separator=\"\">&gt;</span><a><cite>" + question.title + "</cite></a>";
+        $(".layui-breadcrumb a").last().after(currPoisition);
+
+        // let score = question.rateScore;
+        // $("#rate").html("<i class=\"fa fa-trophy\" aria-hidden=\"true\"></i>&nbsp;" + question.rate);
+        // if (score < 5) {
+        //     $("#rate").attr("class", "layui-badge layui-bg-gray");
+        // } else if (score >= 5 && score < 15) {
+        //     $("#rate").attr("class", "layui-badge layui-bg-blue");
+        // } else if (score >= 15 && score < 50) {
+        //     $("#rate").attr("class", "layui-badge layui-bg-cyan");
+        // } else if (score >= 50 && score < 200) {
+        //     $("#rate").attr("class", "layui-badge layui-bg-green");
+        // } else if (score >= 200 && score < 500) {
+        //     $("#rate").attr("class", "layui-badge layui-bg-orange");
+        // } else {
+        //     $("#rate").attr("class", "layui-badge");
+        // }
+
+        //编辑操作，此处显示编辑窗，并将编辑内容回显到页面上
+        $("#edit").click(function () {
+            //获取question信息并回显到表单上
+            let ques = [[${question}]];
+            console.log(ques);
+
+            admin.open({
+                title: ques.title,
+                type: 1,
+                area: '820px',
+                offset: '45px',
+                content: '<div class="layui-card"><div class="layui-card-body"><textarea id="questionContent"></textarea></div></div><div><button id="updateBtn" class="layui-btn layui-btn-normal">更新内容</button></div>',
+                success: function (layero, dIndex) {
+                    tinymce.init({
+                        selector: '#questionContent',
+                        height: 480,
+                        branding: false,
+                        language: 'zh_CN',
+                        plugins: 'code print preview fullscreen paste searchreplace save autosave link autolink image imagetools media table codesample lists advlist hr charmap emoticons anchor directionality pagebreak quickbars nonbreaking visualblocks visualchars wordcount',
+                        toolbar: 'fullscreen preview code | undo redo | forecolor backcolor | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist | formatselect fontselect fontsizeselect | link image media emoticons charmap anchor pagebreak codesample | ltr rtl',
+                        toolbar_drawer: 'sliding',
+                        automatic_uploads: false,
+                        images_upload_url: '/uploadQuestionImages',
+                        file_picker_types: 'media',
+                        file_picker_callback: function (callback, value, meta) {
+                            layer.msg('演示环境不允许上传', {anim: 6});
+                        },
+                        init_instance_callback: function (editor) {
+                            tinymce.get('questionContent').setContent(ques.description);
+                        }
+                    });
+
+                    //提交按钮
+                    $("#updateBtn").click(function () {
+                        if ($.trim(tinymce.get('questionContent').getContent({format: 'text'})).length === 0) {
+                            return false;
+                        }
+                        layer.load();
+                        $.ajax({
+                            type: "put",
+                            url: "/editQuestionInfo",
+                            data: {
+                                id: ques.id,
+                                description: tinymce.get('questionContent').getContent(),
+                                tag: ques.tag
+                            },
+                            success: function (res) {
+                                layer.closeAll('loading');
+                                if (res.status === 200) {
+                                    layer.close(dIndex);
+                                    notice.msg('更新帖子内容信息成功', {
+                                        icon: 1, timeout: 1500, onClosed: function () {
+                                            window.location.reload();
+                                        }
+                                    });
+                                } else if (res.status === 400) {
+                                    notice.msg(res.msg, {icon: 2, timeout: 2000});
+                                } else {
+                                    notice.msg("系统错误，请稍后再试!", {icon: 2, timeout: 2000});
+                                }
+                            },
+                            error: function () {
+                                layer.closeAll('loading');
+                                notice.msg("系统错误，请稍后再试!", {icon: 2, timeout: 2000});
+                            }
+                        })
+                    });
+                },
+                end: function () {
+                    tinymce.get('questionContent').destroy(false);
+                }
+            });
+
+            return;
+
+
+        });
+
+        //删除操作
+        $("#delete").click(function () {
+            let ques = [[${question}]];
+            layer.confirm('确定删除该问题？', {icon: 3, title: '提示'}, function (index) {
+                $.ajax({
+                    type: "post",
+                    url: "/deleteQuestion",
+                    data: {
+                        questionId: ques.id
+                    },
+                    success: function (res) {
+                        if (res.status === 200) {
+                            layer.alert("删除成功!", {icon: 6, time: 2000});
+                            layer.close(index); //如果设定了yes回调，需进行手工关闭
+                            window.location.href = "/";
+                        } else if (res.status === 400) {
+                            layer.alert(res.msg, {icon: 2, time: 2000});
+                        } else {
+                            layer.alert("系统错误，请稍后再试!", {icon: 3, time: 2000});
+                        }
+                    }
+                })
+                layer.close(index);
+            });
+        });
+
+        let username = null;
+        if ($.trim(loginUserInfo).length > 0) {
+            username = loginUserInfo.username;
+        }
+        //流式加载页面评论区
+        flow.load({
+            elem: '#comments',
+            isAuto: false,
+            end: '<div style="font-size: 16px;color: #999;margin-bottom: 50px">没有更多评论了</div>',
+            done: function (page, next) {
+                let lis = [""];
+                $.get('/getCommentsByQuestionId?questionId=' + question.id + '&page=' + page, function (res) {
+                    if (res.status === 200) {
+                        if (res.data === null) {
+                            lis.push("<div style='font-size: 17px;text-align: center;font-weight: 300;margin: 20px 0;color: #999'>暂无评论，快来做第一个评论的人吧~</div>");
+                            $(".layui-flow-more").hide();
+                        } else {
+                            let comments = res.data;
+                            //需要单独对每个评论进行处理
+                            layui.each(comments, function (index, item) {
+                                //查询评论总数
+                                let replyNum = 0;
+                                $.ajax({
+                                    type: "get",
+                                    url: "/getReplyNum",
+                                    async: false,
+                                    data: {parentCommentId: item.cid},
+                                    success: function (res) {
+                                        replyNum = res.data; //获取评论总数
+                                    }
+                                });
+
+                                //查询每条评论的点赞信息
+                                let likeNum = 0;
+                                $.ajax({
+                                    type: "get",
+                                    url: "/getLikeCount",
+                                    async: false,
+                                    data: {commentId: item.cid},
+                                    success: function (res) {
+                                        likeNum = res.data;
+                                    }
+                                });
+
+                                if (item.info === null || item.info === "") {
+                                    item.info = "&nbsp;&nbsp;";
+                                }
+
+                                //评论用户等级头衔
+                                let score = item.rateScore;
+                                let cla = "";
+                                if (score < 5) {
+                                    cla = "layui-badge layui-bg-gray";
+                                } else if (score >= 5 && score < 15) {
+                                    cla = "layui-badge layui-bg-blue";
+                                } else if (score >= 15 && score < 50) {
+                                    cla = "layui-badge layui-bg-cyan";
+                                } else if (score >= 50 && score < 200) {
+                                    cla = "layui-badge layui-bg-green";
+                                } else if (score >= 200 && score < 500) {
+                                    cla = "layui-badge layui-bg-orange";
+                                } else {
+                                    cla = "layui-badge";
+                                }
+
+                                let html = "         <div class='comment-list'>\n" +
+                                    "                <div class='comment-header'>\n" +
+                                    "                    <ul class='index-list'>\n" +
+                                    "                        <li>\n" +
+                                    "                            <a class='comment-avatar' href='/user/" + item.uid + "'>\n" +
+                                    "                                <img style='border-radius: 10px' width='45' height='45' src='" + item.avatar + "'>\n" +
+                                    "                            </a>\n" +
+                                    "                            <a class='comment-index-name' href='/user/" + item.uid + "'>" + item.uname + "</a>\n" +
+                                    "                            <span style='border-radius: 3px;float:left;margin-right: 10px;margin-top: 3px' class='" + cla + "'><i class='fa fa-trophy' aria-hidden='true'></i>&nbsp;" + item.rate + "</span><p style='margin-top: 4px'>" + item.info + "</p>\n" +
+                                    "                        </li>\n" +
+                                    "                    </ul>\n" +
+                                    "                </div>\n" +
+                                    "                <div class='comment-description'>" + item.comment + "</div>\n" +
+                                    "                <div class='clearfix' style='margin-left: 56px;margin-bottom: 38px;'>\n" +
+                                    "                    <span class='text-color-999 pull-right'>" + item.time + "</span>\n" +
+                                    "                    <span class='operate' data-id='" + item.cid + "' comment-uname='" + item.uname + "'>\n" +
+                                    "                       <a class='agree'>\n" +
+                                    "                           <i data-placement='right' style='vertical-align: -5px' class='layui-icon layui-icon-praise' data-original-title='赞同回复'></i>\n" +
+                                    "                               <span class='count' style='font-size: 10px;vertical-align: -2px;'>" + likeNum + "</span>\n" +
+                                    "                       </a>\n" +
+                                    "                    </span>\n" +
+                                    "                    <span class='sub-comment'>\n" +
+                                    "                    <a class='add-sub-comment' data-click='" + (index + 1) + "' href='javascript:;'>" +
+                                    "                        <i class='layui-icon layui-icon-dialogue'></i>&nbsp;<span style='font-size: 11px;    vertical-align: 2px;'>" + replyNum + "</span>\n" +
+                                    "                    </a></span>\n" +
+                                    "                </div>";
+
+                                replyNum = 0;
+                                //查询这层楼有没有楼中楼回复，并拼接html
+                                let replyHtml = addReplyComment(item.cid, index + 1, item.uname);
+
+                                lis.push(html + replyHtml);
+                            });
+                        }
+                    }
+                    //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+                    //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+                    next(lis.join(''), page < res.pages);
+
+                    //此处添加按钮操作
+
+                    //点击评论框下的回复框弹出/收起回复内容
+                    $(".add-sub-comment").click(function () {
+                        $(this).parent(".sub-comment").parent(".clearfix").siblings(".sub-comment-box").toggle();
+                        if ($(this).parent(".sub-comment").parent(".clearfix").siblings(".sub-comment-box").css("display" !== 'none')) {
+                            //不为none就展示背景颜色
+                            $(this).parent(".sub-comment").css("background-color", "#499ef3");
+                            $(this).parent(".sub-comment").children("a").children("i").css("color", "#fff");
+                            $(this).parent(".sub-comment").children("a").children("span").css("color", "#fff");
+                        } else {
+                            //为none
+                            $(this).parent(".sub-comment").css("background-color", "#f5f5f5");
+                            $(this).parent(".sub-comment").children("a").children("i").css("color", "#155faa");
+                            $(this).parent(".sub-comment").children("a").children("span").css("color", "#155faa");
+                        }
+                    });
+
+                    //遍历查询评论框
+                    $(".sub-comment").each(function () {
+                        let count = $(this).children(".add-sub-comment").children("span").html();
+                        if (parseInt(count) === 0) {
+                            $(this).css("background-color", "#f5f5f5");
+                        } else {
+                            $(this).css("background-color", "#499ef3");
+                            $(this).children("a").children("i").css("color", "#fff");
+                            $(this).children("a").children("span").css("color", "#fff");
+                        }
+                    });
+
+                    //点击评论框出现回复按钮
+                    $(".sub-comment-input-text").focus(function () {
+                        //获取当前点击的ID
+                        $(this).siblings(".sub-comment-input-submit").show();
+                    });
+
+                    //点击取消收起按钮
+                    $(".sub-comment-button-cancel").click(function () {
+                        //清空对应文本框中的内容
+                        $(this).parent(".sub-comment-input-submit").siblings(".sub-comment-input-text").val("");
+                        $(this).parent().hide();
+                    });
+
+                    //点击绿色回复框，将要回复的目标用户名以@形式放入指定输入框，并将目标回复对象放入属性中
+                    $(".sub-comment-btn").click(function () {
+                        let replyUsername = $(this).parent().children("a").children("span").html();  //要回复的用户名
+                        let replyFor = " @" + replyUsername + "：";
+                        $(this).parent(".comment-index-name").parent("li").siblings(".sub-comment-input").children(".sub-comment-input-text").val(replyFor);
+                    });
+
+                    //先遍历查询点赞状态
+                    if ($.trim(username).length > 0) {
+                        $(".operate").each(function () {
+                            let me = $(this);
+                            let commentId = $(this).attr("data-id");
+                            let commentUsername = $(this).attr("comment-uname");
+                            $.ajax({
+                                type: "get",
+                                url: "/getLikeStatus",
+                                data: {
+                                    username: username,
+                                    commentId: commentId,
+                                    commentUsername: commentUsername,
+                                    questionId: question.id
+                                },
+                                success: function (res) {
+                                    if (res.status === 200) {
+                                        if (res.data === 1) {
+                                            //是已赞状态，改变css
+                                            me.css("background-color", "#499ef3");
+                                            me.children("a").children("i").css("color", "#fff");
+                                            me.children("a").children("span").css("color", "#fff");
+                                        } else {
+                                            me.css("background-color", "#f5f5f5");
+                                        }
+                                    } else {
+                                        me.css("background-color", "#f5f5f5");
+                                    }
+                                }
+                            });
+                        });
+                    }
+
+                    //点赞评论
+                    $(".operate").click(function () {
+                        let me = $(this);
+                        let commentId = $(this).attr("data-id");
+                        let commentUsername = $(this).attr("comment-uname");
+                        if (username === undefined || username === null || $.trim(username).length < 1) {
+                            notice.msg("您还没有登录哦", {icon: 3, timeout: 1500});
+                            return false;
+                        }
+                        if (username === commentUsername) {
+                            notice.msg("您不能给自己点赞哦", {icon: 3, timeout: 1500});
+                            return false;
+                        }
+                        $.ajax({
+                            type: "get",
+                            url: "/like",
+                            async: false,
+                            data: {
+                                username: username,
+                                commentId: commentId,
+                                commentUsername: commentUsername,
+                                questionId: question.id
+                            },
+                            success: function (res) {
+                                if (res.status === 200) {
+                                    //点赞成功
+                                    if (res.data === 1) {
+                                        //修改数值
+                                        notice.info({
+                                            title: '消息通知',
+                                            message: '您点赞了 ' + commentUsername + ' 的评论',
+                                            timeout: 1500
+                                        });
+                                        let count = me.children("a").children("span").html();
+                                        let c = parseInt(count) + 1;
+                                        me.children("a").children("span").html(c);
+                                        me.css("background-color", "#499ef3");
+                                        me.children("a").children("i").css("color", "#fff");
+                                        me.children("a").children("span").css("color", "#fff");
+                                    } else {
+                                        notice.warning({
+                                            title: '消息通知',
+                                            message: '您取消了对 ' + commentUsername + ' 的点赞',
+                                            timeout: 1500
+                                        });
+                                        let count = me.children("a").children("span").html();
+                                        me.children("a").children("span").html(count - 1);
+                                        me.css("background-color", "#f5f5f5");
+                                        me.children("a").children("i").css("color", "#155faa");
+                                        me.children("a").children("span").css("color", "#155faa");
+                                    }
+                                }
+                            }
+                        })
+                    });
+
+                    //新增评论中楼中楼回复
+                    $(".sub-comment-button-comment").click(function () {
+                        let replyContent = $(this).parent(".sub-comment-input-submit").siblings(".sub-comment-input-text").val();  //回复内容
+                        let rId = parseInt($(this).attr("reply-id"));  //父级评论ID
+                        let replyUsername = $(this).attr("reply-user");  //获取回复对象用户名
+
+                        //数据校验
+                        if ($.trim(username).length === 0) {
+                            notice.msg("您还没有登录哦", {icon: 3, timeout: 1500});
+                            return;
+                        }
+
+                        if (($.trim(replyContent).length === 0)) {
+                            notice.msg("回复内容不能为空哦", {icon: 3, timeout: 1500});
+                            return;
+                        }
+                        layer.load();
+                        $.ajax({
+                            type: "post",
+                            url: "/reply",
+                            data: {
+                                questionId: question.id,
+                                username: username,
+                                content: replyContent,
+                                parentCommentId: rId,
+                                replyfor: replyUsername
+                            },
+                            success: function (res) {
+                                layer.closeAll('loading');
+                                if (res.status === 200) {
+                                    notice.msg("回复成功", {
+                                        icon: 5, timeout: 1500, onClosed: function () {
+                                            parent.location.reload();
+                                        }
+                                    });
+                                } else {
+                                    notice.msg(res.msg, {icon: 2, timeout: 2000});
+                                }
+                            },
+                            error: function () {
+                                layer.closeAll('loading');
+                                notice.msg("回复失败，请稍后再试", {icon: 2, timeout: 1500});
+                            }
+                        });
+                    });
+                });
+            }
+        });
+
+        if (username !== null && ($.trim(username).length > 0)) {
+            //显示评论区
+            $("#login-comment-body").show();
+            $("#unlogin-comment-body").hide();
+            $(".question-body-index").show();
+        } else {
+            //不显示评论区
+            $("#unlogin-comment-body").show();
+            $("#login-comment-body").hide();
+            $(".question-body-index").hide();
+        }
+
+        //收藏按钮的显示
+        let qId = question.id;
+        if (username != null && $.trim(username).length > 0) {
+            $.ajax({
+                type: "get",
+                url: "/getCollectionStatus",
+                async: false,
+                data: {
+                    username: username,
+                    questionId: question.id
+                },
+                success: function (res) {
+                    if (res.status === 200) {
+                        if (res.data === 1) {
+                            $(".collect-question").children("i").attr("class", "layui-icon layui-icon-star-fill");
+                            $(".collect-question").children("i").html("&nbsp;已收藏");
+                        }
+                    }
+                }
+            });
+        }
+
+        //收藏按钮操作
+        $(".collect-question").click(function () {
+            //查询数据库中收藏的状态
+            let qId = [[${question.id}]];
+            $.ajax({
+                type: "get",
+                url: "/collect",
+                data: {
+                    username: username,
+                    questionId: qId
+                },
+                success: function (res) {
+                    if (res.status === 200) {
+                        if (res.data === 1) {
+                            notice.info({
+                                title: '消息通知',
+                                message: '您收藏了 ' + question.publisher + ' 的帖子!',
+                                timeout: 1500
+                            });
+                            $(".collect-question").children("i").attr("class", "layui-icon layui-icon-star-fill");
+                            $(".collect-question").children("i").html("&nbsp;已收藏");
+                        } else if (res.data === 0) {
+                            notice.warning({
+                                title: '消息通知',
+                                message: '您取消了对 ' + question.publisher + ' 的帖子的收藏!',
+                                timeout: 1500
+                            });
+                            $(".collect-question").children("i").attr("class", "layui-icon layui-icon-star");
+                            $(".collect-question").children("i").html("&nbsp;收藏");
+                        }
+                    }
+                }
+            });
+        });
+
+        //举报按钮
+        $(".report-question").click(function () {
+            layer.open({
+                title: '请输入举报理由（反动、色情、政治言论等）',
+                area: ['500px', '260px'],
+                closeBtn: '1',
+                content: `<div><textarea name="txt_remark" placeholder="请在此处输入举报理由" id="reason" style="width:450px;height:130px;padding: 4px 5px;"></textarea></div>`,
+                btn: ['确认', '取消'],
+                yes: function (index, layero) {
+                    let reason = $('#reason').val();//获取多行文本框的值
+                    if (reason == null || reason.replace(/\s/g, "").length === 0) {
+                        layer.msg("举报理由不能为空哦");
+                        return;
+                    }
+                    $.ajax({
+                        type: "post",
+                        url: "/userReport",
+                        async: false,
+                        data: {
+                            username: username,
+                            rUsername: question.publisher,
+                            rQuestionId: question.id,
+                            reportReason: reason
+                        },
+                        success: function (res) {
+                            if (res.status === 200) {
+                                notice.info({
+                                    title: '消息通知',
+                                    message: '举报成功，我们后续会尽快通知您处理结果!',
+                                    timeout: 2000
+                                });
+                            } else {
+                                notice.error({
+                                    title: '消息通知',
+                                    message: res.msg,
+                                    timeout: 2000
+                                });
+                            }
+                        }
+                    });
+                    layer.close(index);
+                }
+            });
+        });
+
+        //关注按钮
+        $(".focus-links").click(function () {
+            if (username === undefined || username === null || $.trim(username).length < 1) {
+                notice.msg("您还没有登录哦", {icon: 3, timeout: 1500});
+                return false;
+
+            }
+            if (question.publisher === username) {
+                notice.msg("您不能关注自己哦", {icon: 3, timeout: 1500});
+                return false;
+            }
+            $.ajax({
+                type: "get",
+                url: "/follow",
+                async: false,
+                data: {
+                    userName: question.publisher,   //被关注的用户名
+                    followName: username   //点击关注者的用户名
+                },
+                success: function (res) {
+                    if (res.status === 200) {
+                        if (res.data === 0) {
+                            //取消关注
+                            notice.info({
+                                title: '消息通知',
+                                message: '您取消了对 ' + question.publisher + ' 的关注',
+                                timeout: 1500
+                            });
+                            $(".focus-links").css("background-color", "#42c02e");
+                            $(".focus-links").html("关注");
+                        } else {
+                            //关注后
+                            notice.info({
+                                title: '消息通知',
+                                message: '您开始关注了 ' + question.publisher,
+                                timeout: 1500
+                            });
+                            $(".focus-links").css("background-color", "#a9b5ac");
+                            $(".focus-links").html("已关注");
+                        }
+                    }
+                }
+            })
+        });
+
+        //添加评论
+        $("#commentBtn").click(function () {
+            let username = loginUserInfo.username;
+            if (($.trim(username).length === 0)) {
+                notice.msg('您还没有登录哦', {icon: 2, timeout: 2000});
+                return false;
+            }
+            layer.load();
+            $.ajax({
+                type: "post",
+                url: "/comment",
+                data: {
+                    username: username,
+                    comment: layedit.getContent(edit),
+                    questionId: question.id
+                },
+                success: function (res) {
+                    layer.closeAll('loading');
+                    if (res.status === 200) {
+                        notice.msg('评论成功', {
+                            icon: 1, timeout: 1000, onClosed: function () {
+                                parent.location.reload();  //当前位置父dom元素重加载
+                            }
+                        });
+                    } else {
+                        notice.msg(res.msg, {icon: 2, timeout: 2000});
+                    }
+                },
+                error: function () {
+                    layer.closeAll('loading');
+                    notice.msg("系统错误，请稍后再试", {icon: 2, timeout: 2000});
+                }
+            });
+        });
+
+    });
+
+    //页面加载完成就开始
+    $(document).ready(function () {
+        //导航栏停留在首页
+        $("#index").addClass("layui-this");
+
+        let username = null;
+        if (loginUserInfo !== undefined && loginUserInfo !== null) {
+            username = loginUserInfo.username;
+        }
+
+        //判断当用户与问题发布者一致时，可以使用编辑和删除操作按钮
+        if (question.publisher === username) {
+            $(".userEdit").show();
+        }
+
+        //图片的fancybox显示，寻找问题体中的图片
+        let img = $(".question-body").find("img");
+        if (img.length !== 0) {
+            for (let i = 0; i < img.length; i++) {
+                let href = img[i].src;
+                let html1 = "<a data-fancybox='gallery' href='" + href + "'>";
+                let html2 = "</a>";
+                let temp = $(img[i])[0].outerHTML;
+                $(img[i]).replaceWith($(html1 + temp + html2));
+            }
+        }
+
+        //获取文章标签
+        $.ajax({
+            type: "get",
+            url: "/getQuestionTags",
+            async: false,
+            data: {questionId: question.id},
+            success: function (res) {
+                let html = "";
+                if (res.status === 200) {
+                    if (res.data == null) {
+                        //拼接空串
+                        $("#post-tags").html(html);
+                    } else {
+                        //拆分，拼接
+                        let tags = res.data.split(",");
+                        $.each(tags, function (i, tag) {
+                            html += "<div class=\"post-tag\">\n" +
+                                "<div><a class=\"tagname\" href=\"/tag?tagname=" + tag + "\"><span><i class=\"layui-icon layui-icon-note\">&nbsp;" + tag + "</i></span></a></div>\n" +
+                                "</div>";
+                        });
+                        $("#post-tags").html(html);
+                    }
+                }
+            }
+        });
+
+        //查询推荐问题
+        $.ajax({
+            type: "get",
+            async: false,
+            url: "/getJingQuestions",
+            success: function (res) {
+                if (res.status === 200) {
+                    let html = "";
+                    if (res.data == null) {
+                        html += "暂无精品问题";
+                    } else {
+                        let recommendQuestionArray = res.data;
+                        $.each(recommendQuestionArray, function (i, item) {
+                            html += "<li style='margin: 10px 0;'><a href=\"/question/" + item.id + "\">" + item.title + "</a></li>";
+                        });
+                    }
+                    $(".recommendQuestions").html(html);
+                }
+            }
+        });
+
+        //查询相关问题
+        $.ajax({
+            type: "get",
+            url: "/getRelatedQuestions",
+            data: {questionId: question.id},
+            async: false,
+            success: function (res) {
+                if (res.status === 200) {
+                    let html = "";
+                    if (res.data == null) {
+                        html += "<div style='font-size: 16px;color: #999'>还没有相关问题推荐呢o(￣┰￣*)ゞ</div>";
+                    } else {
+                        let questionArray = res.data;
+                        for (let i = 0; i < questionArray.length; i++) {
+                            html += "<li><a href=\"/question/" + questionArray[i].id + "\">" + questionArray[i].title + "</a></li>";
+                        }
+                    }
+
+                    $(".relatedQuestions").html(html);
+                }
+            }
+        });
+
+        //关注按钮显示
+        let followName = question.publisher;
+        let status = 0;
+        if (username != null && $.trim(username).length > 0) {
+            $.ajax({
+                type: "get",
+                url: "/getFollowStatus",
+                async: false,
+                data: {
+                    userName: followName,   //被关注的用户名
+                    followName: username   //点击关注者的用户名
+                },
+                success: function (res) {
+                    if (res.status === 200) {
+                        if (res.data === 0) {
+                            //显示未关注信息
+                            status = 0;
+                            $(".focus-links").css("background-color", "#42c02e");
+                            $(".focus-links").html("<i class=\"fa fa-plus\" aria-hidden=\"true\"></i>&nbsp;关注");
+                        } else {
+                            //显示已关注信息
+                            status = 1;
+                            $(".focus-links").css("background-color", "#a9b5ac");
+                            $(".focus-links").html("已关注");
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    //查询楼中楼回复
+    function addReplyComment(parentCommentId, index, commentUsername) {
+        let html = "";
+        $.ajax({
+            type: "get",
+            url: "/queryReply",
+            async: false,
+            data: {"parentCommentId": parentCommentId},
+            success: function (res) {
+                if (res.status === 200) {
+                    //增加html
+                    let replys = res.data;
+                    html += "<div class='sub-comment-box'><div class='sub-comment-list'><ul>";
+
+                    for (let i = 0; i < replys.length; i++) {
+                        //拼接html
+                        html += "  <li style='margin-bottom: 20px'>\n" +
+                            "          <a class='comment-avatar' href='/user/" + replys[i].ruid + "'>\n" +
+                            "              <img style='border-radius: 10px' width='40' height='40' src='" + replys[i].ravatar + "'>\n" +
+                            "          </a>\n" +
+                            "          <div class='comment-index-name'>\n" +
+                            "              <a href='/user/" + replys[i].ruid + "'><span>" + replys[i].rname + "</span>  • </a>" +
+                            "                    <span style='font-size: 13px'>" + replys[i].rtime + "</span>\n" +
+                            "                    <span class='sub-comment-btn'>回复</span>\n" +
+                            "           </div>\n" +
+                            "           <p class='sub-comment-description' style='font-size: 13px;color: #666'>" + replys[i].rcontent + "</p>\n" +
+                            "       </li>";
+                    }
+
+                    //多个楼中楼回复后添加末尾
+                    html += "      <div class='sub-comment-input' style='margin-top: 30px;'>\n" +
+                        "               <textarea class='sub-comment-input-text' placeholder=' 评论一下...'\n" +
+                        "                                  style='width: 100%;height:50px;border-radius: 5px;margin-bottom: 20px;'></textarea>\n" +
+                        "                   <div class='sub-comment-input-submit' style='margin-top:-10px;margin-bottom: 20px;display: none'>\n" +
+                        "                       <span reply-id='" + parentCommentId + "' reply-user='" + commentUsername + "' class='sub-comment-button-comment'>回复</span>\n" +
+                        "                       <span class='sub-comment-button-cancel'>取消</span>\n" +
+                        "                   </div>\n" +
+                        "           </div></div></div>" +
+                        "           <hr>\n" +
+                        "        </div>";
+                } else if (res.status === 500) {
+                    //没有回复的时候，新增一个html
+                    html += "    <div class='sub-comment-box' style='display: none'>\n" +
+                        "                <div class='sub-comment-list'>\n" +
+                        "                    <div style='text-align: center;color: #666;margin-top: 10px'>暂无评论</div>\n" +
+                        "                    <!-- 楼中楼回复框 -->\n" +
+                        "                    <div class='sub-comment-input' style='margin-top: 30px;'>\n" +
+                        "            <textarea class='sub-comment-input-text' placeholder=' 评论一下...'\n" +
+                        "                      style='width: 100%;height:50px;border-radius: 5px;'></textarea>\n" +
+                        "                        <div class='sub-comment-input-submit' style='margin-top:10px;margin-bottom: 20px;display: none'>\n" +
+                        "                            <span reply-id='" + parentCommentId + "' reply-user='" + commentUsername + "' class='sub-comment-button-comment'>回复</span>\n" +
+                        "                            <span class='sub-comment-button-cancel'>取消</a>\n" +
+                        "                        </div>\n" +
+                        "                    </div>\n" +
+                        "                </div>\n" +
+                        "            </div>" +
+                        "            <hr>\n" +
+                        "        </div>";
+                }
+            },
+            error: function () {
+                layer.alert("回复失败，请稍后再试", {icon: 5, time: 2000});
+            }
+        });
+        return html;
+    }
+
+    //鼠标放置发帖用户头像的旋转动画
+    $("#publishAvatar").hover(function () {
+        $("#publishAvatar").attr("class", "layui-anim layui-anim-rotate layui-anim-loop");
+    }, function () {
+        $("#publishAvatar").attr("class", "");
+    })
+
+</script>
+</body>
+</html>

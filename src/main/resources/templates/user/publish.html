@@ -1,0 +1,394 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>发布文章 - 在线学习论坛</title>
+    <link href="/static/assets/libs/layui/css/layui.css" rel="stylesheet"/>
+    <!--    <link href="/static/assets/module/admin.css?v=318" rel="stylesheet">-->
+    <link href="/static/assets/module/notice/notice.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/common/custom.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/css/publish.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/fontawesome/css/fontawesome.min.css}" media="all"/>
+    <script th:src="@{/static/common/jquery.min.js}"></script>
+    <script th:src="@{/static/js/search.js}"></script>
+    <script th:src="@{/static/js/forum.js}"></script>
+    <script src="/static/assets/libs/layui/layui.js" type="text/javascript"></script>
+    <script src="/static/assets/module/notice/notice.js" type="text/javascript"></script>
+    <script src="/static/assets/libs/tinymce/tinymce.min.js" type="text/javascript"></script>
+    <style type="text/css">
+        .layui-header {
+            background: #393D49;
+        }
+
+        body .tox-tinymce-aux {
+            z-index: 19892000;
+        }
+
+        .layui-card-body {
+            padding: 0 !important;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-layout">
+    <header th:replace="common/header"></header>
+    <!-- 左侧 -->
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-xs8">
+                <div class="layui-card" style="padding: 20px">
+                    <form class="layui-form layui-form-pane" method="get" id="test" href="/">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">置顶文章</label>
+                            <div class="layui-input-block">
+                                <select name="ding" lay-filter="ding">
+                                    <option value="0">不置顶</option>
+                                    <option value="1">消耗10积分 置顶一天</option>
+                                    <option value="2">消耗20积分 置顶两天</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">文章标题</label>
+                            <div class="layui-input-block">
+                                <input autocomplete="off" class="layui-input" lay-verify="title" name="title"
+                                       placeholder="请输入标题"
+                                       type="text">
+                            </div>
+                        </div>
+                        <!--富文本编辑器-->
+                        <div class="layui-card">
+                            <div class="layui-card-body" id="loading-textarea">
+                                <div class="page-loading">
+                                    <div class="ball-loader">
+                                        <span></span><span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                                <textarea id="demoEditor"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- 添加标签 -->
+                        <div style="height: 10px"></div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">文章标签</label>
+                            <div class="layui-input-block">
+                                <input autocomplete="off" class="layui-input" id="question-tag" lay-verify="tag"
+                                       name="tag"
+                                       placeholder="请输入标签名称，用英文逗号分隔"
+                                       type="text">
+                            </div>
+                        </div>
+                        <!-- 数据库标签选择 -->
+                        <div class="layui-tab" id="forum-tags"></div>
+
+                        <div style="height: 20px"></div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-filter="publish" lay-submit=""
+                                        style="float: right;border-radius: 10px"
+                                        type="submit"><i class="layui-icon layui-icon-survey"
+                                                         style="font-size: 15px;font-weight: 500">发布文章</i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- 右侧 -->
+            <div class="layui-col-xs3">
+                <div class="layui-card" style="padding: 20px">
+                    <div id="publishInfo">
+                        <div class="info">
+                            <h1 style="text-align: center"><i aria-hidden="true" class="fa fa-university"></i>&nbsp;文章发表指南
+                            </h1>
+                            <ol>
+                                <li>文章标题: 描述您发布的文章</li>
+                                <li>选择标签: 选择一个或者多个合适的标签，用逗号隔开</li>
+                                <li><font color="red">发布违规文章将被扣除10积分</font></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript">
+
+        let loginUserInfo = [[${session.loginUserInfo}]];
+        init(loginUserInfo);
+
+        layui.config({
+            base: '/static/assets/module/'
+        }).use(['admin', 'element', 'form', 'layedit', 'jquery', 'notice'], function () {
+            let admin = layui.admin;
+            let element = layui.element;
+            let layedit = layui.layedit;
+            let form = layui.form;
+            let notice = layui.notice;
+            element.init();
+
+            $("#title-publish").addClass("layui-this");
+
+            // 渲染富文本编辑器
+            tinymce.init({
+                selector: '#demoEditor',
+                // skin: 'oxide-dark',
+                theme: 'silver',
+                // icons_url: '/icons/custom/icons.js',
+                icons: 'custom',
+                setup: function () {
+                    admin.removeLoading('#loading-textarea', true, true);
+                },
+                height: 525,
+                branding: false,
+                language: 'zh_CN',
+                plugins: 'code print preview fullscreen paste searchreplace save autosave link autolink image imagetools media table codesample lists advlist hr charmap emoticons anchor directionality pagebreak quickbars nonbreaking visualblocks visualchars wordcount',
+                toolbar: 'fullscreen preview code | undo redo | forecolor backcolor | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist | formatselect fontselect fontsizeselect | link image media emoticons charmap anchor pagebreak codesample | ltr rtl',
+                toolbar_drawer: 'sliding',
+                automatic_uploads: false,
+                images_upload_url: '/uploadImage',
+                file_picker_types: 'media',
+                file_picker_callback: function (callback, value, meta) {
+                    layer.msg('演示环境不允许上传', {anim: 6});
+                },
+                init_instance_callback: function (editor) {
+                    console.log(editor);
+                }
+            });
+
+            // 监听页面卸载并销毁编辑器
+            admin.on('destroy(plugin/other/editor)', function () {
+                tinymce.get('demoEditor').destroy(false);
+            });
+            /////////////////////////////////////////////////
+
+            //面包屑使用
+            let currPoisition = "<span lay-separator=\"\">&gt;</span><a><cite>发帖</cite></a>";
+            $(".layui-breadcrumb a").last().after(currPoisition);
+
+            //配置图片上传
+            layedit.set({
+                uploadImage: {
+                    url: '/uploadImage'
+                    , type: ''
+                }
+            });
+
+            //表单验证
+            form.verify({
+                title: function (title) {
+                    if (title == null || ($.trim(title).length === 0)) {
+                        return '标题不能为空哦';
+                    }
+                    if (title.length < 1 || title.length > 50) {
+                        return '标题必须在50个字符以内';
+                    }
+                }
+                , tag: function (tag) {
+                    if (tag == null || ($.trim(tag).length === 0)) {
+                        return '至少填写一个标签哦';
+                    }
+                    if (tag.indexOf("，") > 0) {
+                        return '请使用英文逗号分隔标签哦';
+                    }
+                    let regex = /[+,#-x22]+/;
+                    let reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
+                    if (!tag.match(regex) && !tag.match(reg)) {
+                        return '请不要输入除+,#-之外的特殊字符哦';
+                    }
+                }
+            });
+
+            //选中导航栏，并且使用面包屑导航
+            $('.layui-header li').click(function () {
+                $(this).addClass('layui-this').siblings().removeClass('layui-this');
+            });
+
+            //监听问题提交
+            form.on('submit(publish)', function (data) {
+                //提交前的校验数据
+                if (data.field.title == null || ($.trim(data.field.title).length === 0)) {
+                    notice.msg('标题不能为空哦', {icon: 3});
+                    return false;
+                }
+                if (($.trim(data.field.title).length > 50)) {
+                    notice.msg('标题不能超过50个字符哦', {icon: 3});
+                    return false;
+                }
+                //验证输入内容不能为空
+                if (admin.util.fullTextIsEmpty(tinymce.get('demoEditor').getContent())) {
+                    notice.msg('正文内容不能为空哦', {icon: 3});
+                    return false;
+                }
+
+                //标签不能为空
+                if (data.field.tag == null || ($.trim(data.field.tag).length === 0)) {
+                    notice.msg('至少填写一个标签哦', {icon: 3});
+                    return false;
+                }
+
+                //标签中不能添加重复
+                let tag = data.field.tag;
+                if (tag.indexOf(",") !== -1) {
+                    let tags = tag.split(",");
+                    if (tags.length > 10) {
+                        layer.msg("最多允许添加10个标签哦", {icon: 0, time: 2000});
+                        return false;
+                    }
+                    for (let i = 0; i < tags.length - 1; i++) {
+                        for (let j = i + 1; j < tags.length; j++) {
+                            if (tags[i].toLowerCase() === tags[j].toLowerCase()) {
+                                notice.msg('不要重复添加同一个标签哦', {icon: 3});
+                                return false;
+                            }
+                        }
+                    }
+                }
+                layer.load();
+                $.ajax({
+                    type: "post",
+                    url: "/publish",
+                    data: {
+                        title: data.field.title,
+                        description: tinymce.get('demoEditor').getContent(),
+                        tag: data.field.tag,
+                        ding: data.field.ding
+                    },
+                    success: function (res) {
+                        layer.closeAll('loading');
+                        if (res.status === 200) {
+                            notice.msg('发帖成功', {
+                                icon: 1, timeout: 1000, onClosed: function () {
+                                    $('#test').submit();
+                                    window.location.href = "/";
+                                }
+                            });
+                        } else if (res.status === 500) {
+                            notice.msg(res.msg, {icon: 2});
+                        } else if (res.status === 400) {
+                            notice.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll('loading');
+                        notice.msg('系统错误,请稍后再试', {icon: 2});
+                    }
+                });
+                return false;
+            });
+        });
+
+        //获取标签框聚焦事件
+        $("#question-tag").focus(function () {
+            //光标聚焦，开始获取分类数据
+            let tHtml = getCategories();
+
+            //再获取每个分类下的标签数据
+            let tagHtml = getTags();
+            console.log(tagHtml)
+            $("#forum-tags").html(tHtml + tagHtml);
+        });
+
+        //增加标签
+        function addTag(obj) {
+            // alert($(obj).text());
+            let tag = $(obj).text();
+            let text = $("#question-tag").val();
+            if ($.trim(text).length > 0) {
+                //输入框中已经存在tag，提示信息
+                let temp = text.split(",");
+                if (temp.length > 4) {
+                    layer.alert("不能添加超过 5 个标签哦", {icon: 5, time: 2000});
+                    return false;
+                }
+                for (let i = 0; i < temp.length; i++) {
+                    if (temp[i] === tag) {
+                        layer.alert(tag + " 标签已存在，请勿重复添加哦", {icon: 5, time: 2000});
+                        return false;
+                    }
+                }
+                //否则不存在，可以直接添加
+                $("#question-tag").val(text + "," + tag);
+            } else {
+                $("#question-tag").val(tag);
+            }
+        }
+
+
+        let categoryInfo = "";
+
+        //查询所有分类
+        function getCategories() {
+            let html = "<ul class=\"layui-tab-title\" id=\"tags-tab\">";
+            $.ajax({
+                type: "get",
+                url: "/getCategories",
+                async: false,
+                success: function (res) {
+                    if (res.status === 200) {
+                        let categories = JSON.parse(res.data);
+                        categoryInfo = categories;
+                        for (let i = 0; i < categories.length; i++) {
+                            if (i === 0) {
+                                html += "<li class='layui-this'>" + categories[0].category + "</li>";
+                            } else {
+                                html += "<li>" + categories[i].category + "</li>";
+                            }
+                        }
+                    }
+                },
+                error: function () {
+                    layer.alert("无法查询到标签信息，请稍后再试", {icon: 5, time: 2000});
+                }
+            });
+            return html + "</ul>";
+        }
+
+        //查询所有标签
+        function getTags() {
+            let html = "";
+            $.ajax({
+                type: "get",
+                url: "/getTags",
+                async: false,
+                success: function (res) {
+                    //回调返回结果
+                    if (res.status === 200) {
+                        let tags = JSON.parse(res.data);
+
+                        for (let i = 0; i < categoryInfo.length; i++) {
+                            //拼接html，添加开头
+                            if (i === 0) {
+                                html += "<div class=\"layui-tab-content\" id=\"tags-tag\"><div class=\"layui-tab-item layui-show\">";
+                            } else {
+                                html += "<div class=\"layui-tab-item\">";
+                            }
+
+                            //添加中间标签体
+                            for (let j = 0; j < tags.length; j++) {
+                                if (categoryInfo[i].id === tags[j].categoryId) {
+                                    //添加html
+
+                                    html += " <div class=\"hot_tag\">\n" +
+                                        "        <div>" +
+                                        "             <a class=\"tagname\" onclick='addTag(this)' href=\"javascript:;\"><span>" + tags[j].tagsName + "</span></a>\n" +
+                                        "        </div>\n" +
+                                        "      </div>";
+                                }
+                            }
+
+                            //添加末尾
+                            html += "</div>";
+                        }
+                    }
+                },
+                error: function () {
+                    layer.alert("无法查询到标签信息，请稍后再试", {icon: 5, time: 2000});
+                }
+            });
+            return html + "</div>";
+        }
+    </script>
+</div>
+</body>
+</html>
